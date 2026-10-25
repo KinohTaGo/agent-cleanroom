@@ -1,0 +1,21 @@
+# The Anthropic Messages API (or any Anthropic-compatible endpoint given with
+# --backend-url). Credentials are the user's own: an API key or a token the
+# user created with `claude setup-token`, in a file the user wrote. The tool
+# reads that file only to hand it to the container and to scrub its values
+# from the run record; it never stores, copies or forwards it anywhere else.
+schema = "agent-cleanroom/backend-profile/1"
+name = "anthropic"
+kind = "anthropic"
+description = "Anthropic Messages API with the user's own credentials"
+
+[endpoint]
+url = "https://api.anthropic.com"
+
+[auth]
+# --auth-env-file <path>: lines of NAME=value, e.g. ANTHROPIC_API_KEY=… or
+# CLAUDE_CODE_OAUTH_TOKEN=…. The file must not be readable by group/other.
+mode = "env-file"
+
+[seed]
+supported = false
+note = "The Messages API does not accept a seed."

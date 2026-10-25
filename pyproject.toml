@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-cleanroom"
+version = "0.1.0"
+description = "Reproducible, network-isolated runs of coding agents against local LLMs or APIs, with verifiable run records."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "KinohTaGo" }]
+dependencies = ["jsonschema>=4.23"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+]
+
+[project.scripts]
+agent-cleanroom = "agent_cleanroom.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.3", "ruff>=0.15"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agent_cleanroom"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python", "tests/integration"]
+markers = [
+    "docker: needs a running Docker daemon and the local images (set AGENT_CLEANROOM_DOCKER_TESTS=1)",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

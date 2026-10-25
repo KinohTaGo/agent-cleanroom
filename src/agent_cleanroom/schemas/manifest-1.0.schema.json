@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent-cleanroom/manifest/1.0",
+  "title": "agent-cleanroom run manifest (manifest.json)",
+  "type": "object",
+  "required": [
+    "schema", "run_id", "tool", "started_utc", "finished_utc", "status",
+    "verification_passed", "agent_exit_code", "image", "command", "workdir",
+    "network", "hardening", "env_names", "secret_scan", "files"
+  ],
+  "properties": {
+    "schema": { "const": "agent-cleanroom/manifest/1.0" },
+    "run_id": { "type": "string", "pattern": "^[0-9]{8}T[0-9]{6}Z-[0-9a-f]{6}$" },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": { "name": { "const": "agent-cleanroom" }, "version": { "type": "string" } }
+    },
+    "started_utc": { "type": "string" },
+    "finished_utc": { "type": "string" },
+    "duration_seconds": { "type": "number", "minimum": 0 },
+    "status": { "enum": ["ok", "verify-failed", "agent-failed", "timeout", "secret-found"] },
+    "verification_passed": { "type": "boolean" },
+    "agent_exit_code": { "type": ["integer", "null"] },
+    "image": {
+      "type": "object",
+      "required": ["ref", "id"],
+      "properties": { "ref": { "type": "string" }, "id": { "type": ["string", "null"] } }
+    },
+    "gateway_image": { "type": ["object", "null"] },
+    "command": { "type": "array", "items": { "type": "string" } },
+    "prompt_sha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+    "workdir": {
+      "type": "object",
+      "required": ["source", "files", "bytes", "changes"],
+      "properties": {
+        "source": { "enum": ["given", "empty"] },
+        "files": { "type": "integer", "minimum": 0 },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "project_inputs_allowed": { "type": "boolean" },
+        "changes": { "type": "object" }
+      }
+    },
+    "network": { "type": "object", "required": ["mode", "internal_network"] },
+    "hardening": { "type": "object", "required": ["cap_drop", "no_new_privileges", "read_only_root"] },
+    "env_names": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" } },
+    "secret_scan": {
+      "type": "object",
+      "required": ["values_checked", "redactions", "clean", "findings"],
+      "properties": {
+        "values_checked": { "type": "integer", "minimum": 0 },
+        "redactions": { "type": "integer", "minimum": 0 },
+        "clean": { "type": "boolean" },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["file", "rule", "count"],
+            "properties": {
+              "file": { "type": "string" }, "rule": { "type": "string" }, "count": { "type": "integer" }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "files": { "type": "array", "items": { "type": "string" } }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent-cleanroom/backend/1.0",
+  "title": "agent-cleanroom backend record (backend.json)",
+  "type": "object",
+  "required": ["schema", "name", "kind", "profile", "endpoint", "runtime", "model", "sampling", "seed", "auth"],
+  "properties": {
+    "schema": { "const": "agent-cleanroom/backend/1.0" },
+    "name": { "type": "string" },
+    "kind": { "enum": ["ollama", "anthropic"] },
+    "profile": { "type": "string", "pattern": "^(builtin|file):" },
+    "endpoint": {
+      "type": "object",
+      "required": ["host", "container"],
+      "properties": {
+        "host": { "type": "string", "pattern": "^https?://[^/@?#]+$" },
+        "container": { "type": "string", "pattern": "^https?://[^/@?#]+$" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": { "name": { "type": "string" }, "version": { "type": ["string", "null"] } }
+    },
+    "model": {
+      "type": "object",
+      "required": ["name", "digest", "digest_source"],
+      "properties": {
+        "name": { "type": ["string", "null"] },
+        "digest": { "type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$" },
+        "digest_source": { "type": ["string", "null"] }
+      }
+    },
+    "sampling": {
+      "type": "object",
+      "required": ["fixed_by_agent_cleanroom"],
+      "properties": { "fixed_by_agent_cleanroom": { "const": false } }
+    },
+    "seed": {
+      "type": "object",
+      "required": ["fixed", "value", "note"],
+      "properties": {
+        "fixed": { "type": "boolean" },
+        "value": { "type": ["string", "null"] },
+        "note": { "type": "string" }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "required": ["mode", "env_file_given"],
+      "properties": {
+        "mode": { "enum": ["placeholder", "env-file"] },
+        "env_file_given": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent-cleanroom/verify/3.0",
+  "title": "agent-cleanroom verifier record (env.json)",
+  "type": "object",
+  "required": [
+    "schema_version", "verification_timestamp_utc", "sysroot", "agent", "uid",
+    "home_was_empty_at_start", "cli_version_matches_pin", "autoupdate_disabled",
+    "auth", "model_endpoint", "model_selection", "backend", "network", "hardening",
+    "behaviour_env_names", "project_inputs_allowed", "project_inputs_sha256",
+    "image", "tools", "failures", "verification_passed"
+  ],
+  "properties": {
+    "schema_version": { "const": "3.0" },
+    "verification_timestamp_utc": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$" },
+    "sysroot": { "type": "string" },
+    "agent": { "enum": ["claude-code", "none"] },
+    "uid": { "type": "string" },
+    "home_was_empty_at_start": { "type": "boolean" },
+    "cli_version_matches_pin": { "type": "boolean" },
+    "autoupdate_disabled": { "type": "boolean" },
+    "nonessential_traffic_disabled": { "type": "boolean" },
+    "auth": {
+      "type": "object",
+      "required": ["oauth_token_env", "api_key_env", "auth_token_env", "credentials_file"],
+      "properties": {
+        "oauth_token_env": { "type": "boolean" },
+        "api_key_env": { "type": "boolean" },
+        "auth_token_env": { "type": "boolean" },
+        "credentials_file": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "model_endpoint": { "type": ["string", "null"], "pattern": "^[a-z]+://[^/@?#]+$" },
+    "model_selection": { "type": "object", "additionalProperties": { "type": ["string", "null"] } },
+    "backend": {
+      "type": "object",
+      "required": ["name", "expected_endpoint", "endpoint_matches", "probed", "reachable",
+                   "runtime", "runtime_version", "model", "model_digest", "seed_fixed", "seed"],
+      "properties": {
+        "name": { "type": ["string", "null"] },
+        "expected_endpoint": { "type": ["string", "null"] },
+        "endpoint_matches": { "type": ["boolean", "null"] },
+        "probed": { "type": "boolean" },
+        "reachable": { "type": ["boolean", "null"] },
+        "probe_http_status": { "type": ["string", "null"] },
+        "runtime": { "type": ["string", "null"] },
+        "runtime_version": { "type": ["string", "null"] },
+        "model": { "type": ["string", "null"] },
+        "model_digest": { "type": ["string", "null"] },
+        "seed_fixed": { "type": ["boolean", "null"] },
+        "seed": { "type": ["string", "null"] }
+      }
+    },
+    "network": {
+      "type": "object",
+      "required": ["proxy_endpoint"],
+      "properties": { "proxy_endpoint": { "type": ["string", "null"] } }
+    },
+    "hardening": {
+      "type": "object",
+      "required": ["required", "capability_bounding_set_empty", "no_new_privs", "root_filesystem_read_only"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "capability_bounding_set_empty": { "type": ["boolean", "null"] },
+        "no_new_privs": { "type": ["boolean", "null"] },
+        "root_filesystem_read_only": { "type": ["boolean", "null"] }
+      }
+    },
+    "behaviour_env_names": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" } },
+    "project_inputs_allowed": { "type": "boolean" },
+    "project_inputs_sha256": {
+      "type": "object",
+      "additionalProperties": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" }
+    },
+    "image": { "type": "object" },
+    "tools": { "type": "object" },
+    "failures": { "type": "array", "items": { "type": "string" } },
+    "verification_passed": { "type": "boolean" }
+  }
+}

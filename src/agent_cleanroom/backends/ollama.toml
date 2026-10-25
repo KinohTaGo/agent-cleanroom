@@ -1,0 +1,21 @@
+# A local Ollama server on the host, reached through its Anthropic-compatible
+# /v1/messages endpoint. On a Mac the model runs on the host (Metal); the
+# container only reaches the host port through the run's gateway.
+schema = "agent-cleanroom/backend-profile/1"
+name = "ollama"
+kind = "ollama"
+description = "Local Ollama server (Anthropic-compatible /v1/messages)"
+
+[endpoint]
+# Where the host reaches the server. Override with --backend-url.
+url = "http://127.0.0.1:11434"
+
+[auth]
+# Ollama ignores the key; Claude Code still wants one, so a fixed, public
+# placeholder is passed. It is not a secret.
+mode = "placeholder"
+placeholder = "ollama"
+
+[seed]
+supported = false
+note = "Ollama's /v1/messages does not accept a seed; agent-cleanroom 0.1 does not fix one (a Modelfile seed is a later option)."

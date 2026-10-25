@@ -1,0 +1,113 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ci.yml — unit tests, then container tests on linux/amd64. Nothing is published.
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Jobs
+#   unit         shellcheck + bats (verifier), node --check, ruff, pytest (no Docker)
+#   image-test   build both images for linux/amd64, then the container tests:
+#                clean-room controls, kernel-reported hardening, trust stores,
+#                network isolation, run records — against a mock backend only
+#
+# There is deliberately no publish job before 0.5 (see README "Not yet / later").
+#
+# Security note (workflow injection prevention)
+#   All `${{ ... }}` expansions live inside action `with:` blocks or `env:`
+#   blocks. No `${{ ... }}` is inlined into any `run:` shell command body.
+#   Third-party actions are pinned by commit SHA.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.13.4"
+
+      - name: shellcheck + bats
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bats shellcheck
+          shellcheck -S warning verifier/verify.sh
+          bats tests/bats/
+
+      - name: node --check
+        run: |
+          node --check net/gateway.js
+          node --check build/check-distrusted-roots.js
+
+      - name: ruff + pytest
+        run: |
+          uv sync --frozen
+          uv run ruff check .
+          uv run ruff format --check .
+          uv run pytest -q tests/python
+
+  image-test:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.13.4"
+
+      - name: Read base image from the FROM line
+        id: base
+        run: |
+          set -euo pipefail
+          from=$(sed -n 's/^FROM \([^ ]*\).*/\1/p' images/base/Dockerfile | head -n1)
+          name=${from%@*}; digest=${from##*@}
+          [[ "$name" =~ ^[a-z0-9./_:-]+$ && "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] \
+            || { echo "::error::cannot parse FROM line: '$from'"; exit 1; }
+          { echo "name=$name"; echo "digest=$digest"; } >> "$GITHUB_OUTPUT"
+
+      - name: Build images (linux/amd64)
+        env:
+          BASE_NAME: ${{ steps.base.outputs.name }}
+          BASE_DIGEST: ${{ steps.base.outputs.digest }}
+        run: |
+          set -euo pipefail
+          docker build -f images/base/Dockerfile \
+            --build-arg CLEANROOM_BASE_NAME="$BASE_NAME" \
+            --build-arg CLEANROOM_BASE_DIGEST="$BASE_DIGEST" \
+            -t agent-cleanroom/base:local .
+          docker build -f images/claude-code/Dockerfile \
+            --build-arg BASE_IMAGE=agent-cleanroom/base:local \
+            -t agent-cleanroom/claude-code:local .
+
+      - name: Container tests
+        env:
+          AGENT_CLEANROOM_DOCKER_TESTS: "1"
+          ACR_MOCK_BIND: "0.0.0.0"
+        run: |
+          uv sync --frozen
+          uv run pytest -q tests/integration
