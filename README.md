@@ -5,8 +5,8 @@
 Reproducible, network-isolated runs of coding agents against local LLMs (Ollama) or APIs,
 with a verifiable record of every run.
 
-**Status: 0.1.0, pre-release.** Private while it is being built; the record format may still
-change before 1.0. Not affiliated with or endorsed by Anthropic.
+**Status: 0.1.0, pre-release.** Published early so the design can be read; the record format may
+still change before 1.0. Not affiliated with or endorsed by Anthropic.
 
 ## Why
 
@@ -98,7 +98,7 @@ API's model can change behind the same name. Schemas: `src/agent_cleanroom/schem
 | 0.2 | many trials per scenario with resume, `compare` of two records, `llamacpp` and `litellm` backends, optional raw request/response bodies (off by default), fixing a seed where the runtime allows it, Dependabot and a freshness check |
 | 0.3 | decide whether to integrate with Inspect AI / inspect_swe (ADR); run CI on arm64 |
 | 0.5 | image signing (cosign), provenance, SBOM, vulnerability gate; publishing images to a registry starts here |
-| 1.0 | frozen record schema, reproduction guide, CITATION.cff, public release |
+| 1.0 | frozen record schema, reproduction guide, CITATION.cff, first stable release |
 
 Not planned before 1.0: other agents, NVIDIA GPU profiles, Kubernetes, gVisor, dashboards.
 
