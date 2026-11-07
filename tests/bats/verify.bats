@@ -206,7 +206,8 @@ fake_proc() {
     SYS="$BATS_TEST_TMPDIR/sys"; mkdir -p "$SYS"
     for f in /bin/* /usr/bin/*; do
         n=${f##*/}; [ "$n" = jq ] && continue
-        [ -e "$SYS/$n" ] || ln -s "$f" "$SYS/$n"
+        # -L too: a link to a dangling link (merged /bin and /usr/bin) is not -e
+        [ -e "$SYS/$n" ] || [ -L "$SYS/$n" ] || ln -s "$f" "$SYS/$n"
     done
     run env -i PATH="$BIN:$SYS" HOME="$ROOT/cleanroom" CLAUDE_CONFIG_DIR="$ROOT/cleanroom/.claude" \
         CLAUDE_CLI_VERSION="$PIN" DISABLE_AUTOUPDATER=1 ACR_VERIFY_SYSROOT="$ROOT" \
